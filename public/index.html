@@ -27,6 +27,20 @@
             <section class="booking-form">
                 <div class="form-container">
                     <h2>Book Your Laundry Pickup</h2>
+                    <div class="booking-progress">
+                        <div class="progress-step active">
+                            <div class="step-number">1</div>
+                            <div class="step-label">Enter Details</div>
+                        </div>
+                        <div class="progress-step">
+                            <div class="step-number">2</div>
+                            <div class="step-label">Confirm Order</div>
+                        </div>
+                        <div class="progress-step">
+                            <div class="step-number">3</div>
+                            <div class="step-label">Success</div>
+                        </div>
+                    </div>
                     <form id="laundry-form">
                         <div class="form-group">
                             <label for="name">Full Name</label>
@@ -40,12 +54,33 @@
                         
                         <div class="form-group">
                             <label for="phone">Phone Number</label>
-                            <input type="tel" id="phone" name="phone" required>
+                            <div class="phone-input-container">
+                                <div class="country-code-selector">
+                                    <select id="country-code" name="country-code">
+                                        <option value="+1">+1 (US)</option>
+                                        <option value="+44">+44 (UK)</option>
+                                        <option value="+84">+84 (Vietnam)</option>
+                                        <option value="+61">+61 (Australia)</option>
+                                        <option value="+86">+86 (China)</option>
+                                        <option value="+33">+33 (France)</option>
+                                        <option value="+49">+49 (Germany)</option>
+                                        <option value="+91">+91 (India)</option>
+                                        <option value="+81">+81 (Japan)</option>
+                                        <option value="+65">+65 (Singapore)</option>
+                                        <option value="+82">+82 (South Korea)</option>
+                                    </select>
+                                </div>
+                                <input type="tel" id="phone" name="phone" required placeholder="Enter your phone number">
+                            </div>
                         </div>
                         
                         <div class="form-group">
                             <label for="address">Address</label>
-                            <textarea id="address" name="address" required></textarea>
+                            <input type="text" id="address-autocomplete" placeholder="Start typing your address...">
+                            <div id="map"></div>
+                            <input type="hidden" id="address" name="address" required>
+                            <input type="hidden" id="lat" name="lat">
+                            <input type="hidden" id="lng" name="lng">
                         </div>
                         
                         <div class="form-row">
@@ -55,27 +90,68 @@
                             </div>
                             
                             <div class="form-group">
-                                <label for="pickup-time">Pickup Time</label>
-                                <select id="pickup-time" name="pickup-time" required>
-                                    <option value="">Select a time</option>
-                                    <option value="9-11">9:00 AM - 11:00 AM</option>
-                                    <option value="11-1">11:00 AM - 1:00 PM</option>
-                                    <option value="1-3">1:00 PM - 3:00 PM</option>
-                                    <option value="3-5">3:00 PM - 5:00 PM</option>
-                                    <option value="5-7">5:00 PM - 7:00 PM</option>
-                                </select>
+                                <label>Pickup Time</label>
+                                <div class="time-radio-group">
+                                    <div class="time-radio">
+                                        <input type="radio" id="time-9-11" name="pickup-time" value="9-11" required>
+                                        <label for="time-9-11">9:00 AM - 11:00 AM</label>
+                                    </div>
+                                    <div class="time-radio">
+                                        <input type="radio" id="time-11-1" name="pickup-time" value="11-1">
+                                        <label for="time-11-1">11:00 AM - 1:00 PM</label>
+                                    </div>
+                                    <div class="time-radio">
+                                        <input type="radio" id="time-1-3" name="pickup-time" value="1-3">
+                                        <label for="time-1-3">1:00 PM - 3:00 PM</label>
+                                    </div>
+                                    <div class="time-radio">
+                                        <input type="radio" id="time-3-5" name="pickup-time" value="3-5">
+                                        <label for="time-3-5">3:00 PM - 5:00 PM</label>
+                                    </div>
+                                    <div class="time-radio">
+                                        <input type="radio" id="time-5-7" name="pickup-time" value="5-7">
+                                        <label for="time-5-7">5:00 PM - 7:00 PM</label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         
                         <div class="form-group">
-                            <label for="service">Service Type</label>
-                            <select id="service" name="service" required>
-                                <option value="">Select a service</option>
-                                <option value="wash-fold">Wash & Fold (Per Pound)</option>
-                                <option value="dry-cleaning">Eco-Dry Cleaning</option>
-                                <option value="ironing">Wash & Iron</option>
-                                <option value="bedding">Bedding & Linens</option>
-                            </select>
+                            <label>Service Type</label>
+                            <div class="radio-button-group">
+                                <div class="radio-button">
+                                    <input type="radio" id="wash-fold" name="service" value="wash-fold" required>
+                                    <label for="wash-fold">
+                                        <i class="fas fa-tshirt"></i>
+                                        <span>Wash & Fold</span>
+                                        <span class="price">$2.50/lb</span>
+                                    </label>
+                                </div>
+                                <div class="radio-button">
+                                    <input type="radio" id="dry-cleaning" name="service" value="dry-cleaning">
+                                    <label for="dry-cleaning">
+                                        <i class="fas fa-wind"></i>
+                                        <span>Eco-Dry Cleaning</span>
+                                        <span class="price">$6.75/lb</span>
+                                    </label>
+                                </div>
+                                <div class="radio-button">
+                                    <input type="radio" id="ironing" name="service" value="ironing">
+                                    <label for="ironing">
+                                        <i class="fas fa-cloud-meatball"></i>
+                                        <span>Wash & Iron</span>
+                                        <span class="price">$3.50/lb</span>
+                                    </label>
+                                </div>
+                                <div class="radio-button">
+                                    <input type="radio" id="bedding" name="service" value="bedding">
+                                    <label for="bedding">
+                                        <i class="fas fa-bed"></i>
+                                        <span>Bedding & Linens</span>
+                                        <span class="price">$3.25/lb</span>
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                         
                         <div class="form-group">
@@ -88,7 +164,7 @@
                             <textarea id="notes" name="notes"></textarea>
                         </div>
                         
-                        <button type="submit" class="btn-book">Book Pickup</button>
+                        <button type="submit" class="btn-book">Book Pickup <span class="ripple-effect"></span></button>
                     </form>
                 </div>
                 
@@ -107,6 +183,31 @@
                         <i class="fas fa-truck"></i>
                         <h3>Free Delivery</h3>
                         <p>Free pickup and delivery for orders over $20</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="environmental-impact">
+                <h2 class="impact-title">Your Environmental Impact</h2>
+                <p>By choosing EcoLaundry, you're making a positive impact on the environment:</p>
+                
+                <div class="impact-stats">
+                    <div class="impact-stat">
+                        <i class="fas fa-tint"></i>
+                        <div class="stat-value">40%</div>
+                        <div class="stat-label">Less water used compared to conventional laundry</div>
+                    </div>
+                    
+                    <div class="impact-stat">
+                        <i class="fas fa-bolt"></i>
+                        <div class="stat-value">30%</div>
+                        <div class="stat-label">Energy savings through efficient machines</div>
+                    </div>
+                    
+                    <div class="impact-stat">
+                        <i class="fas fa-flask"></i>
+                        <div class="stat-value">100%</div>
+                        <div class="stat-label">Biodegradable detergents used</div>
                     </div>
                 </div>
             </section>
@@ -135,5 +236,6 @@
     </div>
     
     <script src="js/main.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places&callback=initMap" async defer></script>
 </body>
 </html> 
