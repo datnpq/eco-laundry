@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDDbqtMN9j0vxNr2hEPT350dgfFD7XaGSI&libraries=places"></script>
 </head>
 <body>
     <div class="container">
@@ -57,30 +58,33 @@
                             <div class="phone-input-container">
                                 <div class="country-code-selector">
                                     <select id="country-code" name="country-code">
-                                        <option value="+1">+1 (US)</option>
-                                        <option value="+44">+44 (UK)</option>
-                                        <option value="+84">+84 (Vietnam)</option>
-                                        <option value="+61">+61 (Australia)</option>
-                                        <option value="+86">+86 (China)</option>
-                                        <option value="+33">+33 (France)</option>
-                                        <option value="+49">+49 (Germany)</option>
-                                        <option value="+91">+91 (India)</option>
-                                        <option value="+81">+81 (Japan)</option>
-                                        <option value="+65">+65 (Singapore)</option>
-                                        <option value="+82">+82 (South Korea)</option>
+                                        <option value="+1">🇺🇸 +1</option>
+                                        <option value="+44">🇬🇧 +44</option>
+                                        <option value="+84">🇻🇳 +84</option>
+                                        <option value="+61">🇦🇺 +61</option>
+                                        <option value="+86">🇨🇳 +86</option>
+                                        <option value="+49">🇩🇪 +49</option>
+                                        <option value="+33">🇫🇷 +33</option>
+                                        <option value="+81">🇯🇵 +81</option>
+                                        <option value="+82">🇰🇷 +82</option>
+                                        <option value="+65">🇸🇬 +65</option>
                                     </select>
                                 </div>
-                                <input type="tel" id="phone" name="phone" required placeholder="Enter your phone number">
+                                <input type="tel" id="phone" name="phone" placeholder="Enter phone number" required>
                             </div>
                         </div>
                         
                         <div class="form-group">
                             <label for="address">Address</label>
-                            <input type="text" id="address-autocomplete" placeholder="Start typing your address...">
-                            <div id="map"></div>
-                            <input type="hidden" id="address" name="address" required>
-                            <input type="hidden" id="lat" name="lat">
-                            <input type="hidden" id="lng" name="lng">
+                            <div class="map-input-container">
+                                <input type="text" id="address-search" name="address-search" placeholder="Search for your address">
+                                <div id="map-container">
+                                    <div id="map"></div>
+                                </div>
+                                <textarea id="address" name="address" required readonly></textarea>
+                                <input type="hidden" id="latitude" name="latitude">
+                                <input type="hidden" id="longitude" name="longitude">
+                            </div>
                         </div>
                         
                         <div class="form-row">
@@ -91,26 +95,26 @@
                             
                             <div class="form-group">
                                 <label>Pickup Time</label>
-                                <div class="time-radio-group">
-                                    <div class="time-radio">
-                                        <input type="radio" id="time-9-11" name="pickup-time" value="9-11" required>
-                                        <label for="time-9-11">9:00 AM - 11:00 AM</label>
+                                <div class="radio-group time-radios">
+                                    <div class="radio-option">
+                                        <input type="radio" id="pickup-time-9-11" name="pickup-time" value="9-11" required>
+                                        <label for="pickup-time-9-11">9:00 AM - 11:00 AM</label>
                                     </div>
-                                    <div class="time-radio">
-                                        <input type="radio" id="time-11-1" name="pickup-time" value="11-1">
-                                        <label for="time-11-1">11:00 AM - 1:00 PM</label>
+                                    <div class="radio-option">
+                                        <input type="radio" id="pickup-time-11-1" name="pickup-time" value="11-1">
+                                        <label for="pickup-time-11-1">11:00 AM - 1:00 PM</label>
                                     </div>
-                                    <div class="time-radio">
-                                        <input type="radio" id="time-1-3" name="pickup-time" value="1-3">
-                                        <label for="time-1-3">1:00 PM - 3:00 PM</label>
+                                    <div class="radio-option">
+                                        <input type="radio" id="pickup-time-1-3" name="pickup-time" value="1-3">
+                                        <label for="pickup-time-1-3">1:00 PM - 3:00 PM</label>
                                     </div>
-                                    <div class="time-radio">
-                                        <input type="radio" id="time-3-5" name="pickup-time" value="3-5">
-                                        <label for="time-3-5">3:00 PM - 5:00 PM</label>
+                                    <div class="radio-option">
+                                        <input type="radio" id="pickup-time-3-5" name="pickup-time" value="3-5">
+                                        <label for="pickup-time-3-5">3:00 PM - 5:00 PM</label>
                                     </div>
-                                    <div class="time-radio">
-                                        <input type="radio" id="time-5-7" name="pickup-time" value="5-7">
-                                        <label for="time-5-7">5:00 PM - 7:00 PM</label>
+                                    <div class="radio-option">
+                                        <input type="radio" id="pickup-time-5-7" name="pickup-time" value="5-7">
+                                        <label for="pickup-time-5-7">5:00 PM - 7:00 PM</label>
                                     </div>
                                 </div>
                             </div>
@@ -118,37 +122,37 @@
                         
                         <div class="form-group">
                             <label>Service Type</label>
-                            <div class="radio-button-group">
-                                <div class="radio-button">
-                                    <input type="radio" id="wash-fold" name="service" value="wash-fold" required>
-                                    <label for="wash-fold">
+                            <div class="radio-group service-radios">
+                                <div class="radio-option">
+                                    <input type="radio" id="service-wash-fold" name="service" value="wash-fold" required>
+                                    <label for="service-wash-fold">
                                         <i class="fas fa-tshirt"></i>
                                         <span>Wash & Fold</span>
-                                        <span class="price">$2.50/lb</span>
+                                        <small>$2.50/lb</small>
                                     </label>
                                 </div>
-                                <div class="radio-button">
-                                    <input type="radio" id="dry-cleaning" name="service" value="dry-cleaning">
-                                    <label for="dry-cleaning">
+                                <div class="radio-option">
+                                    <input type="radio" id="service-dry-cleaning" name="service" value="dry-cleaning">
+                                    <label for="service-dry-cleaning">
                                         <i class="fas fa-wind"></i>
                                         <span>Eco-Dry Cleaning</span>
-                                        <span class="price">$6.75/lb</span>
+                                        <small>$6.75/lb</small>
                                     </label>
                                 </div>
-                                <div class="radio-button">
-                                    <input type="radio" id="ironing" name="service" value="ironing">
-                                    <label for="ironing">
-                                        <i class="fas fa-cloud-meatball"></i>
+                                <div class="radio-option">
+                                    <input type="radio" id="service-ironing" name="service" value="ironing">
+                                    <label for="service-ironing">
+                                        <i class="fas fa-iron"></i>
                                         <span>Wash & Iron</span>
-                                        <span class="price">$3.50/lb</span>
+                                        <small>$3.50/lb</small>
                                     </label>
                                 </div>
-                                <div class="radio-button">
-                                    <input type="radio" id="bedding" name="service" value="bedding">
-                                    <label for="bedding">
+                                <div class="radio-option">
+                                    <input type="radio" id="service-bedding" name="service" value="bedding">
+                                    <label for="service-bedding">
                                         <i class="fas fa-bed"></i>
                                         <span>Bedding & Linens</span>
-                                        <span class="price">$3.25/lb</span>
+                                        <small>$3.25/lb</small>
                                     </label>
                                 </div>
                             </div>
@@ -236,6 +240,5 @@
     </div>
     
     <script src="js/main.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places&callback=initMap" async defer></script>
 </body>
 </html> 
