@@ -1,0 +1,20 @@
+{
+  "name": "eco-laundry-app",
+  "version": "1.0.0",
+  "description": "Eco-friendly on-demand laundry booking web app",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "body-parser": "^1.20.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+} 
