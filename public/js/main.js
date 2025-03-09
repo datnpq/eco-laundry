@@ -237,332 +237,169 @@ document.addEventListener('DOMContentLoaded', function() {
     // Run once on page load
     animateOnScroll();
 
-    // Initialize Google Maps functionality after DOM is loaded
-    function initializeMap() {
-        // Hiển thị loading state
-        const mapContainer = document.getElementById('map-container');
-        mapContainer.innerHTML = '<div class="map-loading"><div class="loading-spinner"></div><p>Đang tải bản đồ...</p></div>';
+    // Google Maps Platform Web Components Integration
+    const SHORT_NAME_ADDRESS_COMPONENT_TYPES = new Set([
+        'street_number', 
+        'administrative_area_level_1', 
+        'postal_code'
+    ]);
+
+    const ADDRESS_COMPONENT_TYPES_IN_FORM = [
+        'location',
+        'locality',
+        'administrative_area_level_1',
+        'postal_code',
+        'country',
+    ];
+
+    function getFormInputElement(componentType) {
+        return document.getElementById(`${componentType}-input`);
+    }
+
+    async function initMap() {
+        // Wait for extended component library elements to be defined
+        await customElements.whenDefined('gmpx-split-layout');
+        await customElements.whenDefined('gmp-map');
+        await customElements.whenDefined('gmp-advanced-marker');
         
-        // Tạo bản đồ với các tùy chọn tốt hơn
-        const mapOptions = {
-            center: { lat: 10.762622, lng: 106.660172 }, // Mặc định Ho Chi Minh City
-            zoom: 13,
-            mapTypeControl: false,
-            streetViewControl: false,
-            fullscreenControl: true,
-            zoomControl: true,
-            gestureHandling: 'cooperative', // Cải thiện cuộn trên di động
-            styles: [
-                {
-                    "featureType": "administrative",
-                    "elementType": "geometry",
-                    "stylers": [{"visibility": "off"}]
-                },
-                {
-                    "featureType": "poi",
-                    "stylers": [{"visibility": "off"}]
-                },
-                {
-                    "featureType": "transit",
-                    "elementType": "labels.icon",
-                    "stylers": [{"visibility": "off"}]
-                }
-            ] // Đơn giản hóa bản đồ
-        };
+        const mapEl = document.getElementById('map');
+        const markerEl = document.getElementById('marker');
         
-        // Khởi tạo bản đồ
-        const map = new google.maps.Map(document.getElementById('map'), mapOptions);
+        // Set default location (San Francisco)
+        const defaultLocation = { lat: 37.7749, lng: -122.4194 };
+        mapEl.center = defaultLocation;
+        markerEl.position = defaultLocation;
         
-        // Thêm marker với animation
-        const marker = new google.maps.Marker({
-            map: map,
-            draggable: true,
-            animation: google.maps.Animation.DROP
+        // Initialize Places Autocomplete
+        const { Autocomplete } = await google.maps.importLibrary("places");
+        const locationInput = getFormInputElement('location');
+        
+        const autocomplete = new Autocomplete(locationInput, {
+            fields: ['address_components', 'geometry', 'formatted_address'],
+            types: ['address'],
         });
         
-        // Xử lý marker khi kéo
-        marker.addListener('dragstart', function() {
-            document.getElementById('map').classList.add('map-dragging');
-        });
+        // Focus on address input when page loads
+        locationInput.focus();
         
-        marker.addListener('dragend', function() {
-            document.getElementById('map').classList.remove('map-dragging');
-            const position = marker.getPosition();
-            map.setCenter(position);
-            
-            // Hiển thị indicator đang tìm địa chỉ
-            document.getElementById('address').value = 'Đang tìm địa chỉ...';
-            
-            // Reverse geocode lấy địa chỉ chính xác
-            const geocoder = new google.maps.Geocoder();
-            geocoder.geocode({ 'location': position }, function(results, status) {
-                if (status === 'OK') {
-                    if (results[0]) {
-                        // Địa chỉ chi tiết, chính xác
-                        const address = results[0].formatted_address;
-                        document.getElementById('address-search').value = address;
-                        document.getElementById('address').value = address;
-                        
-                        // Lấy chi tiết hơn về địa chỉ từ components
-                        let streetNumber = '';
-                        let route = '';
-                        let locality = '';
-                        let administrative_area_level_1 = '';
-                        let country = '';
-                        let postal_code = '';
-                        
-                        for (const component of results[0].address_components) {
-                            const types = component.types;
-                            
-                            if (types.includes('street_number')) {
-                                streetNumber = component.long_name;
-                            } else if (types.includes('route')) {
-                                route = component.long_name;
-                            } else if (types.includes('locality')) {
-                                locality = component.long_name;
-                            } else if (types.includes('administrative_area_level_1')) {
-                                administrative_area_level_1 = component.long_name;
-                            } else if (types.includes('country')) {
-                                country = component.long_name;
-                            } else if (types.includes('postal_code')) {
-                                postal_code = component.long_name;
-                            }
-                        }
-                        
-                        // Lưu chi tiết địa chỉ vào hidden fields nếu cần
-                        document.getElementById('latitude').value = position.lat();
-                        document.getElementById('longitude').value = position.lng();
-                        
-                        // Animation hiển thị kết quả
-                        document.getElementById('address').classList.add('highlight-animation');
-                        setTimeout(() => {
-                            document.getElementById('address').classList.remove('highlight-animation');
-                        }, 1000);
-                    }
-                } else {
-                    // Xử lý lỗi
-                    document.getElementById('address').value = "Không thể xác định địa chỉ, vui lòng thử lại.";
-                    console.error('Geocoder failed due to: ' + status);
-                }
-            });
-        });
-        
-        // Cải thiện Places Autocomplete
-        const searchInput = document.getElementById('address-search');
-        
-        // Thêm clear button
-        const clearButton = document.createElement('button');
-        clearButton.type = 'button';
-        clearButton.className = 'clear-search';
-        clearButton.innerHTML = '&times;';
-        clearButton.addEventListener('click', function() {
-            searchInput.value = '';
-            searchInput.focus();
-        });
-        
-        // Thêm button vào container
-        searchInput.parentNode.style.position = 'relative';
-        searchInput.parentNode.appendChild(clearButton);
-        
-        // Cải thiện Places Autocomplete
-        const autocompleteOptions = {
-            fields: ['address_components', 'formatted_address', 'geometry', 'name'],
-            strictBounds: false,
-            types: ['address']
-        };
-        
-        const autocomplete = new google.maps.places.Autocomplete(searchInput, autocompleteOptions);
-        
-        // Không tự động submit form khi nhấn Enter
-        searchInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-            }
-        });
-        
-        // Xử lý khi chọn địa chỉ từ dropdown
-        autocomplete.addListener('place_changed', function() {
+        // When a place is selected
+        autocomplete.addListener('place_changed', () => {
             const place = autocomplete.getPlace();
             
-            if (!place.geometry || !place.geometry.location) {
-                // Người dùng nhập địa chỉ nhưng không chọn từ dropdown
-                document.getElementById('address-search').placeholder = 'Vui lòng chọn địa chỉ từ danh sách';
+            if (!place.geometry) {
+                // User entered text but didn't select a suggestion
+                locationInput.placeholder = "Please select an address from dropdown";
                 return;
             }
             
-            // Cập nhật bản đồ
-            if (place.geometry.viewport) {
-                map.fitBounds(place.geometry.viewport);
-            } else {
-                map.setCenter(place.geometry.location);
-                map.setZoom(17);
+            // Update map and marker
+            renderAddress(place);
+            
+            // Fill in address fields
+            fillInAddress(place);
+            
+            // Store coordinates
+            if (place.geometry && place.geometry.location) {
+                document.getElementById('latitude').value = place.geometry.location.lat();
+                document.getElementById('longitude').value = place.geometry.location.lng();
             }
             
-            // Cập nhật marker
-            marker.setPosition(place.geometry.location);
-            marker.setVisible(true);
+            // Store formatted address
+            if (place.formatted_address) {
+                document.getElementById('formatted_address').value = place.formatted_address;
+            }
             
-            // Animate marker để thu hút sự chú ý
-            marker.setAnimation(google.maps.Animation.BOUNCE);
-            setTimeout(() => {
-                marker.setAnimation(null);
-            }, 1500);
+            // Highlight the fields
+            highlightFields();
             
-            // Cập nhật form fields
-            document.getElementById('address').value = place.formatted_address;
-            document.getElementById('latitude').value = place.geometry.location.lat();
-            document.getElementById('longitude').value = place.geometry.location.lng();
-            
-            // Animation hiển thị kết quả
-            document.getElementById('address').classList.add('highlight-animation');
-            setTimeout(() => {
-                document.getElementById('address').classList.remove('highlight-animation');
-            }, 1000);
+            // Focus on apartment field
+            document.getElementById('address2').focus();
         });
         
-        // Tự động lấy vị trí của người dùng nếu có thể
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                function(position) {
-                    const pos = {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude
-                    };
-                    
-                    map.setCenter(pos);
-                    marker.setPosition(pos);
-                    marker.setVisible(true);
-                    
-                    // Reverse geocode để lấy địa chỉ
-                    const geocoder = new google.maps.Geocoder();
-                    geocoder.geocode({ 'location': pos }, function(results, status) {
-                        if (status === 'OK') {
-                            if (results[0]) {
-                                document.getElementById('address-search').value = results[0].formatted_address;
-                                document.getElementById('address').value = results[0].formatted_address;
-                                document.getElementById('latitude').value = pos.lat;
-                                document.getElementById('longitude').value = pos.lng;
-                            }
-                        }
-                    });
-                },
-                function(error) {
-                    // Xử lý lỗi geolocation
-                    console.log('Error: Geolocation service failed.', error.message);
-                    
-                    // Nếu không lấy được vị trí, hiển thị thông báo
-                    const mapNotice = document.createElement('div');
-                    mapNotice.className = 'map-notice';
-                    mapNotice.innerHTML = '<i class="fas fa-map-marker-alt"></i> Vui lòng nhập địa chỉ của bạn';
-                    document.getElementById('map').appendChild(mapNotice);
-                },
-                { 
-                    enableHighAccuracy: true,
-                    timeout: 5000,
-                    maximumAge: 0
+        // Reset button handler
+        document.querySelector('.reset-button').addEventListener('click', () => {
+            // Clear all fields
+            document.querySelectorAll('.panel input').forEach(input => {
+                input.value = '';
+            });
+            
+            // Clear hidden fields
+            document.getElementById('formatted_address').value = '';
+            document.getElementById('latitude').value = '';
+            document.getElementById('longitude').value = '';
+            
+            // Reset map to default location
+            mapEl.center = defaultLocation;
+            markerEl.position = defaultLocation;
+            
+            // Focus on address input
+            locationInput.focus();
+        });
+    }
+
+    function renderAddress(place) {
+        const mapEl = document.getElementById('map');
+        const markerEl = document.getElementById('marker');
+        
+        if (place.geometry && place.geometry.location) {
+            const location = {
+                lat: place.geometry.location.lat(),
+                lng: place.geometry.location.lng()
+            };
+            
+            mapEl.center = location;
+            markerEl.position = location;
+            mapEl.zoom = 15; // Zoom in when a place is selected
+        }
+    }
+
+    function fillInAddress(place) {
+        function getComponentName(componentType) {
+            for (const component of place.address_components || []) {
+                if (component.types[0] === componentType) {
+                    return SHORT_NAME_ADDRESS_COMPONENT_TYPES.has(componentType) ?
+                        component.short_name :
+                        component.long_name;
                 }
-            );
+            }
+            return '';
         }
         
-        // Thêm nút định vị hiện tại
-        const locationButton = document.createElement("button");
-        locationButton.innerHTML = '<i class="fas fa-location-arrow"></i>';
-        locationButton.className = "custom-map-control";
-        locationButton.title = "Vị trí hiện tại của bạn";
-        map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(locationButton);
+        function getComponentText(componentType) {
+            if (componentType === 'location') {
+                const streetNumber = getComponentName('street_number');
+                const route = getComponentName('route');
+                return streetNumber && route ? `${streetNumber} ${route}` : '';
+            }
+            return getComponentName(componentType);
+        }
         
-        locationButton.addEventListener("click", () => {
-            // Hiện loading state
-            locationButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            locationButton.disabled = true;
+        // Fill in each field
+        for (const componentType of ADDRESS_COMPONENT_TYPES_IN_FORM) {
+            const value = getComponentText(componentType);
+            const inputElement = getFormInputElement(componentType);
             
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        const pos = {
-                            lat: position.coords.latitude,
-                            lng: position.coords.longitude,
-                        };
-                        
-                        map.setCenter(pos);
-                        marker.setPosition(pos);
-                        marker.setVisible(true);
-                        
-                        // Lấy địa chỉ từ vị trí
-                        const geocoder = new google.maps.Geocoder();
-                        geocoder.geocode({ location: pos }, (results, status) => {
-                            // Khôi phục trạng thái nút
-                            locationButton.innerHTML = '<i class="fas fa-location-arrow"></i>';
-                            locationButton.disabled = false;
-                            
-                            if (status === "OK") {
-                                if (results[0]) {
-                                    document.getElementById('address-search').value = results[0].formatted_address;
-                                    document.getElementById('address').value = results[0].formatted_address;
-                                    document.getElementById('latitude').value = pos.lat;
-                                    document.getElementById('longitude').value = pos.lng;
-                                } else {
-                                    console.log("No results found");
-                                }
-                            } else {
-                                console.log("Geocoder failed due to: " + status);
-                            }
-                        });
-                    },
-                    () => {
-                        // Khôi phục trạng thái nút
-                        locationButton.innerHTML = '<i class="fas fa-location-arrow"></i>';
-                        locationButton.disabled = false;
-                        
-                        alert("Không thể xác định vị trí của bạn.");
-                    },
-                    { 
-                        enableHighAccuracy: true,
-                        timeout: 5000,
-                        maximumAge: 0
-                    }
-                );
-            } else {
-                // Khôi phục trạng thái nút
-                locationButton.innerHTML = '<i class="fas fa-location-arrow"></i>';
-                locationButton.disabled = false;
-                
-                alert("Trình duyệt của bạn không hỗ trợ Geolocation.");
+            if (inputElement && value) {
+                inputElement.value = value;
+            }
+        }
+    }
+
+    function highlightFields() {
+        const inputFields = document.querySelectorAll('.panel input[type="text"]');
+        
+        inputFields.forEach(field => {
+            if (field.value) {
+                field.classList.add('highlight-field');
+                setTimeout(() => {
+                    field.classList.remove('highlight-field');
+                }, 1000);
             }
         });
     }
 
-    // Call this after DOM is loaded
-    if (typeof google !== 'undefined') {
-        initializeMap();
-    } else {
-        console.error('Google Maps API not loaded');
-    }
-
-    // Update form submission to include country code
-    laundryForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Add country code to phone number
-        const countryCode = document.getElementById('country-code').value;
-        const phoneNumber = document.getElementById('phone').value;
-        
-        // Create merged phone with country code
-        const fullPhone = countryCode + phoneNumber.replace(/^0+/, '');
-        
-        // Set it in a hidden field or modify the form data later
-        const formData = new FormData(laundryForm);
-        const bookingData = {};
-        
-        for (const [key, value] of formData.entries()) {
-            bookingData[key] = value;
-        }
-        
-        // Replace phone with full phone
-        bookingData['phone'] = fullPhone;
-        
-        // Continue with form submission...
-    });
+    // Make initMap available globally
+    window.initMap = initMap;
 
     // Add radio button animation
     const radioOptions = document.querySelectorAll('.radio-option label');

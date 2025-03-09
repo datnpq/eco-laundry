@@ -7,7 +7,14 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDDbqtMN9j0vxNr2hEPT350dgfFD7XaGSI&libraries=places"></script>
+    <!-- <script async
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDDbqtMN9j0vxNr2hEPT350dgfFD7XaGSI&callback=initAutocomplete&libraries=places&v=weekly" defer>
+    </script> -->
+
+<script
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDDbqtMN9j0vxNr2hEPT350dgfFD7XaGSI&callback=initAutocomplete&libraries=places&v=weekly"
+defer
+></script>
 </head>
 <body>
     <div class="container">
@@ -75,16 +82,43 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="address">Address</label>
-                            <div class="map-input-container">
-                                <input type="text" id="address-search" name="address-search" placeholder="Search for your address">
-                                <div id="map-container">
-                                    <div id="map"></div>
+                            <h3>Shipping Address</h3>
+                            
+                            <gmpx-api-loader key="AIzaSyBJM8kdfZcAPBwKy3EkeIyKpyc8zBA8SF4" solution-channel="GMP_QB_addressselection_v4_cABC">
+                            </gmpx-api-loader>
+                            
+                            <gmpx-split-layout row-layout-min-width="600">
+                                <div class="panel" slot="fixed">
+                                    <div class="address-form-header">
+                                        <span class="form-title">Enter your address</span>
+                                        <p class="form-note"><em>* = required field</em></p>
+                                    </div>
+                                    
+                                    <input type="text" placeholder="Address*" id="location-input" required/>
+                                    <input type="text" placeholder="Apt, Suite, etc (optional)" id="address2"/>
+                                    <input type="text" placeholder="City*" id="locality-input" required/>
+                                    
+                                    <div class="half-input-container">
+                                        <input type="text" class="half-input" placeholder="State/Province*" id="administrative_area_level_1-input" required/>
+                                        <input type="text" class="half-input" placeholder="Zip/Postal code*" id="postal_code-input" required/>
+                                    </div>
+                                    
+                                    <input type="text" placeholder="Country*" id="country-input" required/>
+                                    
+                                    <div class="form-actions">
+                                        <input type="reset" value="Clear Form" class="reset-button" />
+                                    </div>
+                                    
+                                    <!-- Hidden fields for form submission -->
+                                    <input type="hidden" id="formatted_address" name="formatted_address">
+                                    <input type="hidden" id="latitude" name="latitude">
+                                    <input type="hidden" id="longitude" name="longitude">
                                 </div>
-                                <textarea id="address" name="address" required readonly></textarea>
-                                <input type="hidden" id="latitude" name="latitude">
-                                <input type="hidden" id="longitude" name="longitude">
-                            </div>
+                                
+                                <gmp-map slot="main" id="map" map-id="8f208f93a0dfc40c">
+                                    <gmp-advanced-marker id="marker"></gmp-advanced-marker>
+                                </gmp-map>
+                            </gmpx-split-layout>
                         </div>
                         
                         <div class="form-row">
@@ -240,5 +274,11 @@
     </div>
     
     <script src="js/main.js"></script>
+    <script type="module">
+        import {APILoader} from 'https://ajax.googleapis.com/ajax/libs/@googlemaps/extended-component-library/0.6.11/index.min.js';
+    </script>
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJM8kdfZcAPBwKy3EkeIyKpyc8zBA8SF4&libraries=places&callback=initMap">
+    </script>
 </body>
 </html> 
